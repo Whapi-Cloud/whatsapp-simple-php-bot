@@ -14,6 +14,10 @@ Follow these steps to set up and run the bot:
 2. **Set Up Webhook URL**
    - Get a webhook URL to receive incoming messages. If you need help with setting up the webhook, refer to our knowledge base article [Where to Find the Webhook URL](https://support.whapi.cloud/help-desk/receiving/webhooks/where-to-find-the-webhook-url).
    - We recommend using a local environment for testing, such as **NGROK**, to expose a local server to the internet.
+1. **Download Ngrok** from the official website and extract it.
+2. Open the terminal and navigate to the folder where Ngrok is stored.
+3. Run `./ngrok http PORT_NUMBER`, replacing `PORT_NUMBER` with the port your Express server is running on locally.
+Now you should have a public URL that you can use as a URL for your webhook.
    - Set your webhook URL in the **channel settings** on the Whapi.Cloud dashboard.
 
 3. **Install Composer**
@@ -33,17 +37,7 @@ Follow these steps to set up and run the bot:
    ```bash
    php server.php
    ```
-5. **Get Webhook URL**
-When developing a WhatsApp bot, you might want to test it locally before deploying it to a server.
-
-The simplest way to do this is to use tools like **Ngrok**, which creates a secure tunnel to your localhost, allowing you to provide access to your local server from the internet.
-
-1. **Download Ngrok** from the official website and extract it.
-2. Open the terminal and navigate to the folder where Ngrok is stored.
-3. Run `./ngrok http PORT_NUMBER`, replacing `PORT_NUMBER` with the port your Express server is running on locally.
-
-Now you should have a public URL that you can use as a URL for your webhook.
-
+   
 For more detailed instructions on setup and configuration, you can watch our tutorial video on [YouTube](https://youtu.be/1SQ048ZDnE0).
 
 ***
