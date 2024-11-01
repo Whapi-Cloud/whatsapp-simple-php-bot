@@ -1,0 +1,12 @@
+{
+    "name": "whatsapp/integration",
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        }
+    },
+    "require": {
+        "php": ">=7.4",
+        "guzzlehttp/guzzle": "^7.0"
+    }
+}
