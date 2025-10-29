@@ -12,18 +12,49 @@ class Channel {
     }
 
     public function checkHealth() {
-        $ch = curl_init('https://gate.whapi.cloud/health');
+        // Align request with Postman: wake up channel and specify channel_type
+        $url = 'https://gate.whapi.cloud/health?wakeup=true&channel_type=web';
+        $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'Authorization: Bearer ' . $this->token
+            'Authorization: Bearer ' . $this->token,
+            'Accept: application/json'
         ]);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+        $this->applyTlsOptions($ch);
+
         $response = curl_exec($ch);
-        $data = json_decode($response, true);
-        
-        if (!isset($data['status']['text']) || $data['status']['text'] !== 'AUTH') {
-            throw new \Exception('Channel not auth');
-        }
+        $errno = curl_errno($ch);
+        $error = $errno ? curl_error($ch) : null;
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
+
+        if ($errno) {
+            throw new \Exception('Health check failed: curl error #' . $errno . ' ' . $error);
+        }
+        if ($httpCode < 200 || $httpCode >= 300) {
+            throw new \Exception('Health check failed: HTTP ' . $httpCode);
+        }
+
+        $data = json_decode($response, true);
+        if (!is_array($data)) {
+            throw new \Exception('Health check failed: non-JSON response');
+        }
+        if (!isset($data['status']['text']) || $data['status']['text'] !== 'AUTH') {
+            $statusTxt = $data['status']['text'] ?? 'UNKNOWN';
+            $statusCode = $data['status']['code'] ?? 'N/A';
+            throw new \Exception('Channel not auth (status=' . $statusTxt . ', code=' . $statusCode . ')');
+        }
+    }
+
+    private function applyTlsOptions($ch): void {
+        // Prefer explicit CA bundle if provided in config (especially for Windows)
+        $caBundle = $this->config['ca_bundle'] ?? null;
+        if (is_string($caBundle) && $caBundle !== '' && file_exists($caBundle)) {
+            curl_setopt($ch, CURLOPT_CAINFO, $caBundle);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+        }
     }
 
     public function sendMessage($to, $body): bool {
@@ -39,6 +70,7 @@ class Channel {
             'body' => $body
         ]));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $this->applyTlsOptions($ch);
         $response = curl_exec($ch);
         $data = json_decode($response, true);
         curl_close($ch);
@@ -52,6 +84,7 @@ class Channel {
             'Authorization: Bearer ' . $this->token
         ]);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $this->applyTlsOptions($ch);
         $response = curl_exec($ch);
         $data = json_decode($response, true);
         curl_close($ch);
@@ -97,6 +130,7 @@ class Channel {
             'webhooks' => $currentHooks
         ]));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $this->applyTlsOptions($ch);
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
@@ -129,6 +163,7 @@ class Channel {
             'caption' => $caption
         ]));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $this->applyTlsOptions($ch);
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);

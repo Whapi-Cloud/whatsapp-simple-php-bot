@@ -8,5 +8,13 @@
     "require": {
         "php": ">=7.4",
         "guzzlehttp/guzzle": "^7.0"
+    },
+    "scripts": {
+        "post-install-cmd": [
+            "php -r \"$d='config'; if(!is_dir($d)) mkdir($d, 0777, true); $u='https://curl.se/ca/cacert.pem'; $t=$d.'/cacert.pem'; $c=@file_get_contents($u); if($c===false){fwrite(STDERR, 'Warning: failed to download CA bundle from '.$u.'\\n');} else {file_put_contents($t, $c); echo 'Downloaded CA bundle to '.$t.'\\n';}\""
+        ],
+        "post-update-cmd": [
+            "php -r \"$d='config'; if(!is_dir($d)) mkdir($d, 0777, true); $u='https://curl.se/ca/cacert.pem'; $t=$d.'/cacert.pem'; $c=@file_get_contents($u); if($c===false){fwrite(STDERR, 'Warning: failed to download CA bundle from '.$u.'\\n');} else {file_put_contents($t, $c); echo 'Downloaded CA bundle to '.$t.'\\n';}\""
+        ]
     }
 }

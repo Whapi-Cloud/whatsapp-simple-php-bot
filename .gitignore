@@ -1,6 +1,5 @@
 # Composer dependencies
 /vendor/
-composer.lock
 
 # CA bundle (auto-downloaded)
 config/cacert.pem
