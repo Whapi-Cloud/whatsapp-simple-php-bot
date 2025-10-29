@@ -12,7 +12,7 @@ class Channel {
     }
 
     public function checkHealth() {
-        // Align request with Postman: wake up channel and specify channel_type
+        // Channel check: wake up channel and specify channel_type
         $url = 'https://gate.whapi.cloud/health?wakeup=true&channel_type=web';
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
@@ -92,43 +92,31 @@ class Channel {
         return $data['webhooks'] ?? [];
     }
 
-    // Set the webhook URL on the channel page in the dashboard or use the setWebHook() function (not used now)
+    // Set the webhook URL on the channel using API
     public function setWebHook(): bool {
-        $fullWebhookUrl = $this->config['app_url'] . '/hook';
-        $currentHooks = $this->getWebHooks();
+        $fullWebhookUrl = rtrim($this->config['app_url'], '/');
+        $fullWebhookUrl .= '/whatsapp';
 
-        if (in_array($fullWebhookUrl, array_column($currentHooks, 'url'))) {
-            return true;
-        }
-
-        $hookExists = false;
-        foreach ($currentHooks as &$hook) {
-            if (strpos($hook['url'], 'ngrok') !== false) {
-                $hook['url'] = $fullWebhookUrl;
-                $hookExists = true;
-                break;
-            }
-        }
-
-        if (!$hookExists) {
-            $currentHooks[] = [
-                'events' => [
-                    ['type' => 'messages', 'method' => 'post']
-                ],
-                'mode' => 'body',
-                'url' => $fullWebhookUrl
-            ];
-        }
+        $payload = [
+            'webhooks' => [
+                [
+                    'mode' => 'body',
+                    'events' => [
+                        ['type' => 'messages', 'method' => 'post']
+                    ],
+                    'url' => $fullWebhookUrl
+                ]
+            ]
+        ];
 
         $ch = curl_init('https://gate.whapi.cloud/settings');
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
             'Authorization: Bearer ' . $this->token,
-            'Content-Type: application/json'
+            'Content-Type: application/json',
+            'Accept: application/json'
         ]);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PATCH');
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
-            'webhooks' => $currentHooks
-        ]));
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         $this->applyTlsOptions($ch);
         $response = curl_exec($ch);

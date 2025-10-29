@@ -8,6 +8,26 @@ ini_set('display_errors', 1);
 // Set default timezone
 date_default_timezone_set('UTC');
 
+// Bootstrap autoload and do preflight checks before starting server
+require_once __DIR__ . '/vendor/autoload.php';
+use App\Channel;
+
+// Load config and channel
+try {
+    $config = require __DIR__ . '/config/config.php';
+    $channel = new Channel($config['whatsapp_token']);
+    echo "[BOOT] Checking channel health..." . PHP_EOL;
+    $channel->checkHealth();
+    echo "[BOOT] Health OK (AUTH)." . PHP_EOL;
+    echo "[BOOT] Ensuring webhook is set to {$config['app_url']}/whatsapp ..." . PHP_EOL;
+    $ok = $channel->setWebHook();
+    echo $ok ? "[BOOT] Webhook set/updated." . PHP_EOL : "[BOOT] Webhook not changed." . PHP_EOL;
+} catch (Throwable $e) {
+    // Fail-fast on boot to make issues explicit
+    fwrite(STDERR, "[BOOT][ERROR] " . $e->getMessage() . PHP_EOL);
+    exit(1);
+}
+
 // Start the built-in PHP server
 $port = 8000;
 $host = 'localhost';

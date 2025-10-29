@@ -29,7 +29,10 @@ class Whapi {
 
         $config = require __DIR__ . '/../config/config.php';
         $channel = new Channel($config['whatsapp_token']);
-        $channel->checkHealth(); // It is necessary to check that the API channel is working correctly
+        // Ensure the channel is healthy before doing anything else
+        $channel->checkHealth();
+        // Then install/reinstall webhook (idempotent operation)
+        $this->ensureWebhookInstalled($channel, $config);
 
         // The main cycle of the bot is to check and react to the incoming message depending on the text
         switch ($receivedText) {
@@ -48,6 +51,23 @@ class Whapi {
         }
 
         return $this->response('OK', 200);
+    }
+
+    private function ensureWebhookInstalled(Channel $channel, array $config): void {
+        // Idempotent: set webhook once per environment start (cache flag file in temp)
+        $cacheKey = md5(($config['app_url'] ?? '') . '|' . ($config['whatsapp_token'] ?? ''));
+        $flagFile = rtrim(sys_get_temp_dir(), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'whapi_webhook_' . $cacheKey . '.flag';
+        if (file_exists($flagFile)) {
+            return;
+        }
+        try {
+            $ok = $channel->setWebHook();
+            if ($ok) {
+                @file_put_contents($flagFile, '1');
+            }
+        } catch (\Throwable $e) {
+            // Do not interrupt inbound processing if setup failed; health-check above already validated connectivity
+        }
     }
 
     private function response($message, $code) {
