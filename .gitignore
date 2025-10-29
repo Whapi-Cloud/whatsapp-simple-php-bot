@@ -1,0 +1,43 @@
+# Composer dependencies
+/vendor/
+composer.lock
+
+# CA bundle (auto-downloaded)
+config/cacert.pem
+
+# IDE files
+.idea/
+*.swp
+*.swo
+*~
+.vscode/
+*.code-workspace
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+logs/
+storage/logs/
+
+# Temporary files
+*.tmp
+*.bak
+*.cache
+
+# PHPUnit
+phpunit.xml
+.phpunit.result.cache
+/phpunit/
+
+# Built files
+/public/build/
+
