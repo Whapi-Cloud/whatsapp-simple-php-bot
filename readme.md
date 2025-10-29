@@ -52,7 +52,6 @@ This bot's script contains helpful comments throughout, making it easy to unders
 
 - **`checkHealth()`** - Checks if the bot's channel is functioning correctly.
 - **`sendMessage()`** - Sends a message to the specified recipient.
-- **`setWebHook()`** - Sets the webhook URL automatically (this function isn’t used in this example, but is available if you wish to automate webhook settings without dashboard access).
 - **`getWebHooks()`** - Retrieves webhook settings from the API.
 - **`sendLocalJPG()`** - Converts a local image from the `/images/` directory to base64 format and sends it.
 
